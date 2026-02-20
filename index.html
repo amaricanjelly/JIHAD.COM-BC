@@ -3,81 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neon Animation</title>
-
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<title>Pick-Up Line Calculator</title>
 
 <style>
-body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    font-family: 'Orbitron', sans-serif;
-    overflow: hidden;
-}
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #ff6ec4, #7873f5);
+        text-align: center;
+        padding: 50px;
+        color: white;
+    }
 
-/* Neon Text */
-.neon-text {
-    font-size: 3rem;
-    text-align: center;
-    color: #fff;
-    letter-spacing: 5px;
-    animation: flicker 2s infinite alternate;
-    text-shadow:
-        0 0 5px #00f7ff,
-        0 0 10px #00f7ff,
-        0 0 20px #00f7ff,
-        0 0 40px #00e6ff,
-        0 0 80px #00e6ff;
-}
+    .container {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 400px;
+        margin: auto;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
 
-/* Flicker Animation */
-@keyframes flicker {
-    0% {
-        opacity: 1;
-        text-shadow:
-            0 0 5px #00f7ff,
-            0 0 15px #00f7ff,
-            0 0 30px #00f7ff,
-            0 0 60px #00e6ff;
+    input, button {
+        padding: 10px;
+        margin: 10px;
+        width: 80%;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
     }
-    50% {
-        opacity: 0.8;
-        text-shadow:
-            0 0 2px #00f7ff,
-            0 0 8px #00f7ff,
-            0 0 15px #00e6ff;
-    }
-    100% {
-        opacity: 1;
-        text-shadow:
-            0 0 5px #00f7ff,
-            0 0 20px #00f7ff,
-            0 0 40px #00e6ff,
-            0 0 80px #00e6ff;
-    }
-}
 
-/* Responsive */
-@media (max-width: 600px) {
-    .neon-text {
-        font-size: 1.8rem;
-        letter-spacing: 3px;
+    button {
+        background-color: #ff4b7d;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
     }
-}
+
+    button:hover {
+        background-color: #ff1e5a;
+    }
+
+    #result {
+        margin-top: 20px;
+        font-size: 18px;
+        min-height: 50px;
+    }
+
+    .slider {
+        width: 80%;
+    }
 </style>
 </head>
 
 <body>
 
-<div class="neon-text">
-    SUMAIYA AR JAMAI JIHAD
+<div class="container">
+    <h2>💘 Pick-Up Line Calculator 💘</h2>
+    
+    <input type="text" id="name" placeholder="Enter their name...">
+    
+    <p>Flirt Level 😏</p>
+    <input type="range" min="1" max="3" value="1" class="slider" id="flirtLevel">
+    <p>1 = Cute | 2 = Smooth | 3 = Spicy 🔥</p>
+    
+    <button onclick="generateLine()">Calculate</button>
+    
+    <div id="result"></div>
 </div>
+
+<script>
+function generateLine() {
+    const name = document.getElementById("name").value || "beautiful";
+    const level = document.getElementById("flirtLevel").value;
+    const result = document.getElementById("result");
+
+    const cuteLines = [
+        `${name}, are you made of sugar? Because you're so sweet! 🍭`,
+        `Hey ${name}, do you have a map? I keep getting lost in your eyes.`,
+        `${name}, are you a star? Because you light up my world ✨`
+    ];
+
+    const smoothLines = [
+        `${name}, are you WiFi? Because I'm feeling the connection.`,
+        `Is your name ${name}? Because you've been running through my mind all day.`,
+        `${name}, if beauty were time, you'd be eternity.`
+    ];
+
+    const spicyLines = [
+        `${name}, are you a campfire? Because you're hot and I want s'more 🔥`,
+        `Are you ${name}? Or did heaven just lose an angel?`,
+        `${name}, you must be tired… you've been starring in my dreams all night.`
+    ];
+
+    let lines;
+
+    if (level == 1) {
+        lines = cuteLines;
+    } else if (level == 2) {
+        lines = smoothLines;
+    } else {
+        lines = spicyLines;
+    }
+
+    const randomIndex = Math.floor(Math.random() * lines.length);
+    result.innerHTML = lines[randomIndex];
+}
+</script>
 
 </body>
 </html>
