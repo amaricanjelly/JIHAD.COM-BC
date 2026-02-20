@@ -3,111 +3,212 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pick-Up Line Calculator</title>
+<title>Pro Rizz Generator</title>
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #ff6ec4, #7873f5);
-        text-align: center;
-        padding: 50px;
-        color: white;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-    .container {
-        background: rgba(0, 0, 0, 0.3);
-        padding: 30px;
-        border-radius: 15px;
-        max-width: 400px;
-        margin: auto;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Orbitron',sans-serif;
+}
 
-    input, button {
-        padding: 10px;
-        margin: 10px;
-        width: 80%;
-        border-radius: 8px;
-        border: none;
-        font-size: 16px;
-    }
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#0f0c29;
+    overflow:hidden;
+    color:white;
+}
 
-    button {
-        background-color: #ff4b7d;
-        color: white;
-        cursor: pointer;
-        transition: 0.3s;
-    }
+/* Animated Background Glow */
+body::before{
+    content:"";
+    position:absolute;
+    width:600px;
+    height:600px;
+    background:radial-gradient(circle,#ff00cc,#3333ff);
+    filter:blur(150px);
+    animation:moveGlow 10s infinite alternate ease-in-out;
+}
 
-    button:hover {
-        background-color: #ff1e5a;
-    }
+@keyframes moveGlow{
+    0%{transform:translate(-20%, -20%);}
+    100%{transform:translate(40%, 30%);}
+}
 
-    #result {
-        margin-top: 20px;
-        font-size: 18px;
-        min-height: 50px;
-    }
+/* Card */
+.container{
+    position:relative;
+    width:400px;
+    padding:30px;
+    border-radius:20px;
+    backdrop-filter:blur(25px);
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.2);
+    box-shadow:0 0 40px rgba(255,0,255,0.3);
+    transition:0.4s;
+}
 
-    .slider {
-        width: 80%;
-    }
+.container:hover{
+    transform:rotateX(5deg) rotateY(-5deg) scale(1.02);
+}
+
+/* Inputs */
+input{
+    width:100%;
+    padding:12px;
+    margin:15px 0;
+    border-radius:10px;
+    border:none;
+    outline:none;
+}
+
+/* Slider */
+.slider{
+    width:100%;
+}
+
+/* Button */
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    background:linear-gradient(45deg,#ff00cc,#3333ff);
+    color:white;
+    font-weight:bold;
+    letter-spacing:1px;
+    transition:0.4s;
+}
+
+button:hover{
+    box-shadow:0 0 20px #ff00cc,0 0 40px #3333ff;
+    transform:scale(1.05);
+}
+
+/* Result */
+.result{
+    margin-top:20px;
+    min-height:60px;
+    opacity:0;
+    transition:0.5s;
+}
+
+/* Progress Bar */
+.progress-container{
+    width:100%;
+    background:rgba(255,255,255,0.1);
+    border-radius:10px;
+    margin-top:15px;
+    height:15px;
+}
+
+.progress{
+    height:100%;
+    width:0%;
+    border-radius:10px;
+    background:linear-gradient(90deg,#ff00cc,#00ffff);
+    transition:1s ease;
+}
+
+/* Floating Particles */
+.particle{
+    position:absolute;
+    width:5px;
+    height:5px;
+    background:white;
+    border-radius:50%;
+    opacity:0.5;
+    animation:float 15s linear infinite;
+}
+
+@keyframes float{
+    from{transform:translateY(100vh);}
+    to{transform:translateY(-10vh);}
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h2>💘 Pick-Up Line Calculator 💘</h2>
-    
+    <h2>💎 Elite Rizz Machine 💎</h2>
     <input type="text" id="name" placeholder="Enter their name...">
-    
-    <p>Flirt Level 😏</p>
-    <input type="range" min="1" max="3" value="1" class="slider" id="flirtLevel">
-    <p>1 = Cute | 2 = Smooth | 3 = Spicy 🔥</p>
-    
-    <button onclick="generateLine()">Calculate</button>
-    
-    <div id="result"></div>
+    <input type="range" min="1" max="3" value="1" id="flirt" class="slider">
+    <button onclick="generate()">Generate Rizz</button>
+
+    <div id="result" class="result"></div>
+
+    <div class="progress-container">
+        <div id="progress" class="progress"></div>
+    </div>
 </div>
 
 <script>
-function generateLine() {
-    const name = document.getElementById("name").value || "beautiful";
-    const level = document.getElementById("flirtLevel").value;
-    const result = document.getElementById("result");
 
-    const cuteLines = [
-        `${name}, are you made of sugar? Because you're so sweet! 🍭`,
-        `Hey ${name}, do you have a map? I keep getting lost in your eyes.`,
-        `${name}, are you a star? Because you light up my world ✨`
-    ];
+const lines = {
+1:[
+"Are you a sunrise? Because you brighten my darkest days.",
+"Your smile should be illegal. It's dangerously attractive.",
+"If cuteness were a crime, you'd be serving life."
+],
+2:[
+"Are you WiFi? Because I'm really feeling the connection.",
+"You must be a time traveler, because I see you in my future.",
+"If charm were money, you'd be a billionaire."
+],
+3:[
+"Are you fire? Because you're dangerously hot.",
+"Are you gravity? Because I can't escape your pull.",
+"You walked in, and the temperature just went up."
+]
+};
 
-    const smoothLines = [
-        `${name}, are you WiFi? Because I'm feeling the connection.`,
-        `Is your name ${name}? Because you've been running through my mind all day.`,
-        `${name}, if beauty were time, you'd be eternity.`
-    ];
-
-    const spicyLines = [
-        `${name}, are you a campfire? Because you're hot and I want s'more 🔥`,
-        `Are you ${name}? Or did heaven just lose an angel?`,
-        `${name}, you must be tired… you've been starring in my dreams all night.`
-    ];
-
-    let lines;
-
-    if (level == 1) {
-        lines = cuteLines;
-    } else if (level == 2) {
-        lines = smoothLines;
-    } else {
-        lines = spicyLines;
+function typeWriter(text, element){
+    element.innerHTML="";
+    let i=0;
+    function typing(){
+        if(i<text.length){
+            element.innerHTML+=text.charAt(i);
+            i++;
+            setTimeout(typing,25);
+        }
     }
-
-    const randomIndex = Math.floor(Math.random() * lines.length);
-    result.innerHTML = lines[randomIndex];
+    typing();
 }
+
+function generate(){
+    const name=document.getElementById("name").value||"Beautiful";
+    const level=document.getElementById("flirt").value;
+    const result=document.getElementById("result");
+    const progress=document.getElementById("progress");
+
+    const randomLine=lines[level][Math.floor(Math.random()*3)];
+    const final=name+", "+randomLine;
+
+    result.style.opacity=1;
+    typeWriter(final,result);
+
+    const score=Math.floor(Math.random()*40)+(level*20);
+    progress.style.width=score+"%";
+}
+
+/* Particle Background */
+for(let i=0;i<40;i++){
+    let p=document.createElement("div");
+    p.classList.add("particle");
+    p.style.left=Math.random()*100+"vw";
+    p.style.animationDuration=(Math.random()*10+10)+"s";
+    document.body.appendChild(p);
+}
+
 </script>
 
 </body>
