@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ESP8266 Deauther — SecureTech Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #00f5a0;
+    --accent2: #00c3f5;
+    --danger: #ff3c5a;
+    --text: #e8e8f0;
+    --muted: #888899;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:var(--font-mono); min-height:100vh; overflow-x:hidden; }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity:0.4;
+  }
+
+  /* ── GRID LINES ── */
+  body::after {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: linear-gradient(rgba(0,245,160,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,245,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .page-wrap { position:relative; z-index:1; }
+
+  /* ── NAV ── */
+  nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 40px; border-bottom:1px solid var(--border);
+    background:rgba(10,10,15,0.9); backdrop-filter:blur(20px);
+    position:sticky; top:0; z-index:100;
+  }
+  .logo { font-family:var(--font-head); font-size:1.3rem; font-weight:800; letter-spacing:2px; }
+  .logo span { color:var(--accent); }
+  .nav-tag { font-size:0.65rem; letter-spacing:3px; color:var(--accent); padding:4px 10px; border:1px solid var(--accent); text-transform:uppercase; }
+
+  /* ── HERO ── */
+  .hero {
+    display:grid; grid-template-columns:1fr 1fr; gap:0; min-height:90vh; align-items:center;
+    padding:80px 40px; max-width:1200px; margin:0 auto;
+  }
+  .hero-text { padding-right:60px; }
+  .tag-line { font-size:0.65rem; letter-spacing:4px; color:var(--accent); text-transform:uppercase; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+  .tag-line::before { content:''; display:block; width:30px; height:1px; background:var(--accent); }
+  h1 {
+    font-family:var(--font-head); font-size:clamp(2.5rem,5vw,4rem); font-weight:800; line-height:1.05;
+    margin-bottom:24px;
+    background: linear-gradient(135deg, #fff 40%, var(--accent) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-desc { color:var(--muted); line-height:1.8; font-size:0.85rem; margin-bottom:40px; }
+  .price-block { display:flex; align-items:flex-end; gap:16px; margin-bottom:36px; }
+  .price { font-family:var(--font-head); font-size:3.5rem; font-weight:800; color:var(--accent); }
+  .price-note { color:var(--muted); font-size:0.7rem; margin-bottom:14px; }
+  .btn-order {
+    display:inline-block; background:var(--accent); color:#000; font-family:var(--font-mono);
+    font-size:0.9rem; font-weight:700; letter-spacing:2px; padding:18px 48px;
+    border:none; cursor:pointer; text-transform:uppercase; transition:all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .btn-order:hover { background:#fff; transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,245,160,0.3); }
+
+  /* ── PRODUCT VISUAL ── */
+  .hero-visual {
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .product-card {
+    background:var(--card); border:1px solid var(--border); padding:40px;
+    width:100%; max-width:400px; position:relative; overflow:hidden;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .product-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent);
+    animation: scan 3s linear infinite;
+  }
+  @keyframes scan { 0%{opacity:0.3} 50%{opacity:1} 100%{opacity:0.3} }
+  .product-img-area {
+    background:#0d0d15; border:1px solid var(--border); padding:30px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:24px;
+    position:relative; height:200px;
+  }
+  .chip-svg { width:120px; height:120px; }
+  .product-badge {
+    position:absolute; top:12px; right:12px; background:var(--accent); color:#000;
+    font-size:0.6rem; font-weight:700; letter-spacing:2px; padding:4px 8px;
+    text-transform:uppercase;
+  }
+  .spec-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.72rem; }
+  .spec-row:last-child { border:none; }
+  .spec-key { color:var(--muted); }
+  .spec-val { color:var(--accent2); }
+  .glow-ring {
+    position:absolute; width:300px; height:300px; border-radius:50%;
+    background:radial-gradient(circle, rgba(0,245,160,0.08) 0%, transparent 70%);
+    pointer-events:none; top:50%; left:50%; transform:translate(-50%,-50%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  /* ── FEATURES ── */
+  .features { padding:80px 40px; max-width:1200px; margin:0 auto; }
+  .section-label { font-size:0.6rem; letter-spacing:4px; color:var(--accent); text-transform:uppercase; margin-bottom:40px; display:flex; align-items:center; gap:16px; }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+  .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); }
+  .feat-item { background:var(--card); padding:30px; transition:background 0.2s; }
+  .feat-item:hover { background:#1a1a25; }
+  .feat-icon { font-size:1.5rem; margin-bottom:16px; }
+  .feat-title { font-family:var(--font-head); font-size:1rem; font-weight:700; margin-bottom:8px; }
+  .feat-desc { color:var(--muted); font-size:0.72rem; line-height:1.7; }
+
+  /* ── MODAL BASE ── */
+  .modal { display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center; padding:20px; }
+  .modal.active { display:flex; }
+  .modal-bg { position:absolute; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); }
+  .modal-box {
+    position:relative; z-index:1; background:var(--card); border:1px solid var(--border);
+    padding:40px; width:100%; max-width:480px; animation:slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .modal-box::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+  }
+  .modal-title { font-family:var(--font-head); font-size:1.4rem; font-weight:800; margin-bottom:6px; }
+  .modal-sub { color:var(--muted); font-size:0.72rem; margin-bottom:28px; }
+  .modal-close { position:absolute; top:16px; right:16px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.2rem; }
+  .modal-close:hover { color:var(--danger); }
+
+  /* ── PAYMENT MODAL ── */
+  .step-bar { display:flex; gap:0; margin-bottom:32px; }
+  .step { flex:1; text-align:center; font-size:0.65rem; letter-spacing:2px; padding:10px; background:var(--surface); color:var(--muted); border-bottom:2px solid var(--border); text-transform:uppercase; }
+  .step.active { color:var(--accent); border-bottom-color:var(--accent); background:#0d1a15; }
+  .step.done { color:var(--accent); background:#0d1a15; }
+
+  .payment-info { background:var(--surface); border:1px solid var(--border); padding:20px; margin-bottom:20px; }
+  .pay-row { display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.75rem; }
+  .pay-label { color:var(--muted); }
+  .pay-val { color:var(--text); }
+  .binance-box {
+    background:#0d1a15; border:1px solid var(--accent); padding:16px;
+    margin-bottom:20px; text-align:center;
+  }
+  .binance-label { font-size:0.6rem; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
+  .binance-id { font-family:var(--font-head); font-size:1.4rem; font-weight:800; color:var(--accent); letter-spacing:4px; }
+  .copy-btn { background:none; border:1px solid var(--accent); color:var(--accent); font-family:var(--font-mono); font-size:0.65rem; padding:4px 12px; cursor:pointer; margin-top:8px; transition:all 0.2s; }
+  .copy-btn:hover { background:var(--accent); color:#000; }
+
+  label { display:block; font-size:0.65rem; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:6px; margin-top:16px; }
+  input[type=email], input[type=text], input[type=password] {
+    width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text);
+    font-family:var(--font-mono); font-size:0.85rem; padding:12px 16px; outline:none;
+    transition:border 0.2s;
+  }
+  input:focus { border-color:var(--accent); }
+  .btn-submit {
+    width:100%; background:var(--accent); color:#000; font-family:var(--font-mono);
+    font-size:0.85rem; font-weight:700; letter-spacing:2px; padding:16px;
+    border:none; cursor:pointer; text-transform:uppercase; margin-top:20px; transition:all 0.2s;
+  }
+  .btn-submit:hover { background:#00c87a; }
+  .btn-submit:disabled { background:var(--border); color:var(--muted); cursor:not-allowed; }
+
+  .success-msg { text-align:center; padding:20px 0; }
+  .success-icon { font-size:3rem; margin-bottom:16px; }
+  .success-title { font-family:var(--font-head); font-size:1.5rem; font-weight:800; color:var(--accent); margin-bottom:8px; }
+  .success-desc { color:var(--muted); font-size:0.75rem; line-height:1.8; }
+
+  /* ── ADMIN PANEL ── */
+  #admin-panel { display:none; position:fixed; inset:0; z-index:2000; overflow-y:auto; background:var(--bg); }
+  .admin-nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 32px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0;
+  }
+  .admin-logo { font-family:var(--font-head); font-size:1rem; font-weight:800; }
+  .admin-logo span { color:var(--danger); }
+  .btn-logout { background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--font-mono); font-size:0.7rem; padding:6px 14px; cursor:pointer; }
+  .btn-logout:hover { border-color:var(--danger); color:var(--danger); }
+  .admin-body { max-width:1000px; margin:0 auto; padding:40px 32px; }
+  .admin-header { margin-bottom:32px; }
+  .admin-header h2 { font-family:var(--font-head); font-size:1.8rem; font-weight:800; }
+  .admin-header p { color:var(--muted); font-size:0.75rem; margin-top:6px; }
+  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:40px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); padding:24px; }
+  .stat-label { font-size:0.6rem; letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+  .stat-value { font-family:var(--font-head); font-size:2rem; font-weight:800; color:var(--accent); }
+  .orders-table { width:100%; border-collapse:collapse; }
+  .orders-table th { text-align:left; font-size:0.6rem; letter-spacing:3px; color:var(--muted); text-transform:uppercase; padding:12px 16px; border-bottom:1px solid var(--border); }
+  .orders-table td { padding:14px 16px; font-size:0.75rem; border-bottom:1px solid rgba(42,42,58,0.5); }
+  .orders-table tr:hover td { background:var(--surface); }
+  .status-pill { display:inline-block; padding:3px 10px; font-size:0.6rem; letter-spacing:1px; text-transform:uppercase; }
+  .status-pending { background:rgba(255,180,0,0.15); color:#ffb400; border:1px solid rgba(255,180,0,0.3); }
+  .status-sent { background:rgba(0,245,160,0.1); color:var(--accent); border:1px solid rgba(0,245,160,0.3); }
+  .btn-send { background:var(--accent); color:#000; border:none; font-family:var(--font-mono); font-size:0.65rem; font-weight:700; padding:6px 14px; cursor:pointer; letter-spacing:1px; }
+  .btn-send:hover { background:#00c87a; }
+  .btn-send:disabled { background:var(--border); color:var(--muted); cursor:not-allowed; }
+  .no-orders { text-align:center; padding:60px; color:var(--muted); font-size:0.8rem; }
+
+  /* ── ADMIN LOGIN ── */
+  #admin-login { display:none; position:fixed; inset:0; z-index:1500; background:var(--bg); align-items:center; justify-content:center; }
+  #admin-login.active { display:flex; }
+  .login-box { background:var(--card); border:1px solid var(--border); padding:48px; width:100%; max-width:380px; position:relative; }
+  .login-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--danger),#ff8c00); }
+  .login-box h2 { font-family:var(--font-head); font-size:1.4rem; font-weight:800; margin-bottom:4px; }
+  .login-box p { color:var(--muted); font-size:0.7rem; margin-bottom:28px; }
+  .err-msg { color:var(--danger); font-size:0.7rem; margin-top:8px; display:none; }
+  .err-msg.show { display:block; }
+
+  /* Secret admin access */
+  .admin-access { position:fixed; bottom:20px; right:20px; width:8px; height:8px; background:var(--border); cursor:pointer; z-index:500; border-radius:50%; transition:background 0.3s; }
+  .admin-access:hover { background:var(--danger); }
+
+  @media(max-width:768px) {
+    .hero { grid-template-columns:1fr; padding:60px 20px; }
+    .hero-text { padding-right:0; margin-bottom:40px; }
+    .features-grid { grid-template-columns:1fr; }
+    nav { padding:16px 20px; }
+    .stats-row { grid-template-columns:1fr; }
+    .modal-box { padding:24px; }
+  }
+
+  .loading-dot { animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="logo">SECURE<span>TECH</span></div>
+  <div class="nav-tag">VERIFIED STORE</div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="tag-line">Limited Stock Available</div>
+    <h1>ESP8266<br/>Deauther<br/>V2.6.1</h1>
+    <p class="hero-desc">
+      DSTIKE Deauther OLED V6 — pre-flashed and ready to go. 
+      Firmware version 2.6.1 included. Perfect for network security research, 
+      penetration testing labs, and educational purposes.
+    </p>
+    <div class="price-block">
+      <div class="price">$40</div>
+      <div class="price-note">One-time payment<br/>Digital delivery via email</div>
+    </div>
+    <button class="btn-order" onclick="openPayment()">ORDER NOW →</button>
+  </div>
+
+  <div class="hero-visual">
+    <div class="glow-ring"></div>
+    <div class="product-card">
+      <div class="product-img-area">
+        <span class="product-badge">IN STOCK</span>
+        <svg class="chip-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="25" y="25" width="70" height="70" rx="4" fill="#111" stroke="#00f5a0" stroke-width="1.5"/>
+          <rect x="35" y="35" width="50" height="50" rx="2" fill="#0d1a15" stroke="#00c3f5" stroke-width="1"/>
+          <text x="60" y="57" text-anchor="middle" fill="#00f5a0" font-size="7" font-family="monospace">ESP8266</text>
+          <text x="60" y="68" text-anchor="middle" fill="#00c3f5" font-size="5.5" font-family="monospace">DEAUTHER</text>
+          <text x="60" y="78" text-anchor="middle" fill="#888" font-size="4.5" font-family="monospace">v2.6.1 OLED V6</text>
+          <!-- Pins left -->
+          <rect x="10" y="37" width="15" height="3" rx="1" fill="#00f5a0" opacity="0.6"/>
+          <rect x="10" y="45" width="15" height="3" rx="1" fill="#00f5a0" opacity="0.6"/>
+          <rect x="10" y="53" width="15" height="3" rx="1" fill="#00f5a0" opacity="0.6"/>
+          <rect x="10" y="61" width="15" height="3" rx="1" fill="#00f5a0" opacity="0.6"/>
+          <rect x="10" y="69" width="15" height="3" rx="1" fill="#00f5a0" opacity="0.6"/>
+          <rect x="10" y="77" width="15" height="3" rx="1" fill="#00f5a0" opacity="0.6"/>
+          <!-- Pins right -->
+          <rect x="95" y="37" width="15" height="3" rx="1" fill="#00c3f5" opacity="0.6"/>
+          <rect x="95" y="45" width="15" height="3" rx="1" fill="#00c3f5" opacity="0.6"/>
+          <rect x="95" y="53" width="15" height="3" rx="1" fill="#00c3f5" opacity="0.6"/>
+          <rect x="95" y="61" width="15" height="3" rx="1" fill="#00c3f5" opacity="0.6"/>
+          <rect x="95" y="69" width="15" height="3" rx="1" fill="#00c3f5" opacity="0.6"/>
+          <rect x="95" y="77" width="15" height="3" rx="1" fill="#00c3f5" opacity="0.6"/>
+          <!-- Pins top -->
+          <rect x="37" y="10" width="3" height="15" rx="1" fill="#00f5a0" opacity="0.4"/>
+          <rect x="45" y="10" width="3" height="15" rx="1" fill="#00f5a0" opacity="0.4"/>
+          <rect x="53" y="10" width="3" height="15" rx="1" fill="#00f5a0" opacity="0.4"/>
+          <rect x="61" y="10" width="3" height="15" rx="1" fill="#00c3f5" opacity="0.4"/>
+          <rect x="69" y="10" width="3" height="15" rx="1" fill="#00c3f5" opacity="0.4"/>
+          <rect x="77" y="10" width="3" height="15" rx="1" fill="#00c3f5" opacity="0.4"/>
+          <!-- Pins bottom -->
+          <rect x="37" y="95" width="3" height="15" rx="1" fill="#00f5a0" opacity="0.4"/>
+          <rect x="45" y="95" width="3" height="15" rx="1" fill="#00f5a0" opacity="0.4"/>
+          <rect x="53" y="95" width="3" height="15" rx="1" fill="#00f5a0" opacity="0.4"/>
+          <rect x="61" y="95" width="3" height="15" rx="1" fill="#00c3f5" opacity="0.4"/>
+          <rect x="69" y="95" width="3" height="15" rx="1" fill="#00c3f5" opacity="0.4"/>
+          <rect x="77" y="95" width="3" height="15" rx="1" fill="#00c3f5" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="spec-row"><span class="spec-key">FIRMWARE</span><span class="spec-val">v2.6.1</span></div>
+      <div class="spec-row"><span class="spec-key">BOARD</span><span class="spec-val">DSTIKE OLED V6</span></div>
+      <div class="spec-row"><span class="spec-key">DELIVERY</span><span class="spec-val">EMAIL (INSTANT)</span></div>
+      <div class="spec-row"><span class="spec-key">PRICE</span><span class="spec-val">$40 USD</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features">
+  <div class="section-label">What's Included</div>
+  <div class="features-grid">
+    <div class="feat-item">
+      <div class="feat-icon">📦</div>
+      <div class="feat-title">Pre-Flashed .BIN</div>
+      <div class="feat-desc">Ready-to-flash firmware file delivered directly to your inbox after payment confirmation.</div>
+    </div>
+    <div class="feat-item">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Instant Delivery</div>
+      <div class="feat-desc">Digital product sent via email. No shipping, no waiting. Get it within minutes of payment.</div>
+    </div>
+    <div class="feat-item">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">v2.6.1 Stable Build</div>
+      <div class="feat-desc">Specific stable release for DSTIKE OLED V6 hardware. Tested and verified working build.</div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /page-wrap -->
+
+<!-- ══════════════════════════════════════
+     PAYMENT MODAL
+══════════════════════════════════════ -->
+<div class="modal" id="payment-modal">
+  <div class="modal-bg" onclick="closePayment()"></div>
+  <div class="modal-box">
+    <button class="modal-close" onclick="closePayment()">✕</button>
+
+    <!-- Step 1: Payment -->
+    <div id="step1">
+      <div class="step-bar">
+        <div class="step active">01 Payment</div>
+        <div class="step" id="step2-tab">02 Confirm</div>
+      </div>
+      <div class="modal-title">Complete Your Order</div>
+      <div class="modal-sub">Send exactly $40 via Binance Pay to the ID below</div>
+
+      <div class="payment-info">
+        <div class="pay-row"><span class="pay-label">Product</span><span class="pay-val">ESP8266 Deauther v2.6.1</span></div>
+        <div class="pay-row"><span class="pay-label">Amount</span><span class="pay-val" style="color:var(--accent);font-weight:700">$40.00 USD</span></div>
+        <div class="pay-row"><span class="pay-label">Method</span><span class="pay-val">Binance Pay</span></div>
+      </div>
+
+      <div class="binance-box">
+        <div class="binance-label">Binance Pay ID</div>
+        <div class="binance-id" id="binance-id-text">894307667</div>
+        <button class="copy-btn" onclick="copyID()">📋 COPY ID</button>
+      </div>
+
+      <button class="btn-submit" onclick="goStep2()">I HAVE PAID → NEXT</button>
+    </div>
+
+    <!-- Step 2: Email + confirm -->
+    <div id="step2" style="display:none">
+      <div class="step-bar">
+        <div class="step done">01 Payment ✓</div>
+        <div class="step active" id="step2-tab2">02 Confirm</div>
+      </div>
+      <div class="modal-title">Enter Your Email</div>
+      <div class="modal-sub">We'll send your .BIN file to this address after verifying payment</div>
+
+      <label for="buyer-email">Your Email Address</label>
+      <input type="email" id="buyer-email" placeholder="you@example.com"/>
+
+      <label for="buyer-txid">Transaction Reference (optional)</label>
+      <input type="text" id="buyer-txid" placeholder="Binance Pay TX ID or any ref"/>
+
+      <button class="btn-submit" id="submit-order-btn" onclick="submitOrder()">SUBMIT ORDER →</button>
+
+      <div id="submit-error" class="err-msg"></div>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div id="step3" style="display:none">
+      <div class="success-msg">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Order Received!</div>
+        <div class="success-desc">
+          Thank you for your purchase.<br/>
+          We'll verify your Binance payment and send<br/>
+          the <strong>.BIN file</strong> to your email shortly.<br/><br/>
+          <span style="color:var(--accent)">Usually within 1–24 hours.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN LOGIN MODAL
+══════════════════════════════════════ -->
+<div id="admin-login">
+  <div class="login-box">
+    <h2>Admin Access</h2>
+    <p>Enter password to access the control panel</p>
+    <label for="admin-pass">Password</label>
+    <input type="password" id="admin-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')checkAdminLogin()"/>
+    <button class="btn-submit" style="background:var(--danger);margin-top:16px" onclick="checkAdminLogin()">LOGIN →</button>
+    <div class="err-msg" id="login-err">Incorrect password. Try again.</div>
+    <button style="width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--font-mono);font-size:0.7rem;padding:10px;cursor:pointer;margin-top:10px" onclick="closeAdmin()">← BACK TO STORE</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN PANEL
+══════════════════════════════════════ -->
+<div id="admin-panel">
+  <div class="admin-nav">
+    <div class="admin-logo">ADMIN <span>PANEL</span></div>
+    <button class="btn-logout" onclick="logoutAdmin()">LOGOUT →</button>
+  </div>
+  <div class="admin-body">
+    <div class="admin-header">
+      <h2>Order Dashboard</h2>
+      <p>All incoming orders from buyers — send the .BIN file via email after verifying Binance payment</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value" id="stat-pending" style="color:#ffb400">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">File Sent</div>
+        <div class="stat-value" id="stat-sent">—</div>
+      </div>
+    </div>
+
+    <div class="section-label">All Orders</div>
+
+    <div id="orders-container">
+      <div class="no-orders">Loading orders<span class="loading-dot">...</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Secret admin dot -->
+<div class="admin-access" title="Admin" onclick="openAdminLogin()"></div>
+
+<!-- ══════════════════════════════════════
+     FIREBASE SDK
+══════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    databaseURL: "https://jhasdjhbjhdcbnwdced-default-rtdb.firebaseio.com/"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Expose globally
+  window._db = db;
+  window._ref = ref;
+  window._push = push;
+  window._onValue = onValue;
+  window._update = update;
+  window._dbReady = true;
+
+  // ── SUBMIT ORDER ──
+  window.submitOrder = async function() {
+    const email = document.getElementById('buyer-email').value.trim();
+    const txid  = document.getElementById('buyer-txid').value.trim();
+    const errEl = document.getElementById('submit-error');
+    const btn   = document.getElementById('submit-order-btn');
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errEl.textContent = 'Please enter a valid email address.';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'SUBMITTING...';
+
+    try {
+      const ordersRef = ref(db, 'orders');
+      await push(ordersRef, {
+        email: email,
+        txid: txid || 'Not provided',
+        product: 'ESP8266 Deauther v2.6.1',
+        price: '$40',
+        status: 'pending',
+        timestamp: new Date().toISOString(),
+        timestampMs: Date.now()
+      });
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('step3').style.display = 'block';
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'SUBMIT ORDER →';
+      errEl.textContent = 'Error saving order. Check connection & try again.';
+      errEl.classList.add('show');
+      console.error(e);
+    }
+  };
+
+  // ── LOAD ORDERS (admin) ──
+  window.loadOrders = function() {
+    const ordersRef = ref(db, 'orders');
+    onValue(ordersRef, (snapshot) => {
+      const data = snapshot.val();
+      const container = document.getElementById('orders-container');
+      if (!data) {
+        container.innerHTML = '<div class="no-orders">No orders yet. Share your store link!</div>';
+        document.getElementById('stat-total').textContent = '0';
+        document.getElementById('stat-pending').textContent = '0';
+        document.getElementById('stat-sent').textContent = '0';
+        return;
+      }
+      const orders = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+      orders.sort((a,b) => (b.timestampMs||0) - (a.timestampMs||0));
+      const total   = orders.length;
+      const pending = orders.filter(o => o.status === 'pending').length;
+      const sent    = orders.filter(o => o.status === 'sent').length;
+      document.getElementById('stat-total').textContent   = total;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-sent').textContent    = sent;
+
+      let html = `<table class="orders-table">
+        <thead><tr>
+          <th>#</th><th>Email</th><th>TX Ref</th><th>Date</th><th>Status</th><th>Action</th>
+        </tr></thead><tbody>`;
+
+      orders.forEach((order, i) => {
+        const date = order.timestamp ? new Date(order.timestamp).toLocaleString() : '—';
+        const statusClass = order.status === 'sent' ? 'status-sent' : 'status-pending';
+        const statusLabel = order.status === 'sent' ? '✓ SENT' : 'PENDING';
+        const btnDisabled = order.status === 'sent' ? 'disabled' : '';
+        html += `<tr>
+          <td style="color:var(--muted)">${total - i}</td>
+          <td><a href="mailto:${order.email}?subject=Your ESP8266 Deauther v2.6.1 File&body=Hi,%0A%0AThank you for your purchase!%0APlease find your ESP8266 Deauther v2.6.1 .BIN file attached.%0A%0AInstructions:%0A1. Download the attached .bin file%0A2. Flash it to your DSTIKE OLED V6 board%0A3. Enjoy!%0A%0ABest regards,%0ASecureTech Store" style="color:var(--accent2)">${order.email}</a></td>
+          <td style="color:var(--muted);font-size:0.7rem">${order.txid || '—'}</td>
+          <td style="color:var(--muted);font-size:0.7rem">${date}</td>
+          <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
+          <td><button class="btn-send" ${btnDisabled} onclick="markSent('${order.id}', '${order.email}')">SEND FILE</button></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    });
+  };
+
+  // ── MARK AS SENT ──
+  window.markSent = function(orderId, email) {
+    if (!confirm(`Mark order from ${email} as SENT?`)) return;
+    const orderRef = ref(db, 'orders/' + orderId);
+    update(orderRef, { status: 'sent', sentAt: new Date().toISOString() })
+      .then(() => { /* realtime update via onValue */ })
+      .catch(e => alert('Error: ' + e.message));
+  };
+}
+</script>
+
+<script>
+  // ── PAYMENT MODAL ──
+  function openPayment() {
+    document.getElementById('payment-modal').classList.add('active');
+    // Reset to step 1
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'none';
+  }
+  function closePayment() {
+    document.getElementById('payment-modal').classList.remove('active');
+  }
+  function goStep2() {
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('step2-tab').classList.add('active');
+  }
+  function copyID() {
+    const txt = document.getElementById('binance-id-text').textContent;
+    navigator.clipboard.writeText(txt).then(() => {
+      const btn = event.target;
+      btn.textContent = '✓ COPIED!';
+      setTimeout(() => btn.textContent = '📋 COPY ID', 2000);
+    });
+  }
+
+  // ── ADMIN ──
+  const ADMIN_PASS = '308580';
+  function openAdminLogin() {
+    document.getElementById('admin-login').classList.add('active');
+    setTimeout(() => document.getElementById('admin-pass').focus(), 100);
+  }
+  function closeAdmin() {
+    document.getElementById('admin-login').classList.remove('active');
+    document.getElementById('admin-pass').value = '';
+    document.getElementById('login-err').classList.remove('show');
+  }
+  function checkAdminLogin() {
+    const pass = document.getElementById('admin-pass').value;
+    if (pass === ADMIN_PASS) {
+      document.getElementById('admin-login').classList.remove('active');
+      document.getElementById('admin-panel').style.display = 'block';
+      document.body.style.overflow = 'auto';
+      if (window.loadOrders) window.loadOrders();
+    } else {
+      document.getElementById('login-err').classList.add('show');
+      document.getElementById('admin-pass').value = '';
+    }
+  }
+  function logoutAdmin() {
+    document.getElementById('admin-panel').style.display = 'none';
+    document.getElementById('admin-pass').value = '';
+  }
+
+  // Close modal on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closePayment();
+      closeAdmin();
+    }
+  });
+</script>
+</body>
+</html>
