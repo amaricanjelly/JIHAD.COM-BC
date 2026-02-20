@@ -1,9 +1,83 @@
-<!DOCTOR html>
-<html>
-  <head><title>JIHAD MAGI</title></head>
-  <body>
-   <h1>JUHAD APU!</h1>
-   <P>THIS IS A JIHAD MAGI.</P>
-   <button oneclick="alert('Clicked!')">Click Me<button>
-   </body>
-   </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Animation</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    font-family: 'Orbitron', sans-serif;
+    overflow: hidden;
+}
+
+/* Neon Text */
+.neon-text {
+    font-size: 3rem;
+    text-align: center;
+    color: #fff;
+    letter-spacing: 5px;
+    animation: flicker 2s infinite alternate;
+    text-shadow:
+        0 0 5px #00f7ff,
+        0 0 10px #00f7ff,
+        0 0 20px #00f7ff,
+        0 0 40px #00e6ff,
+        0 0 80px #00e6ff;
+}
+
+/* Flicker Animation */
+@keyframes flicker {
+    0% {
+        opacity: 1;
+        text-shadow:
+            0 0 5px #00f7ff,
+            0 0 15px #00f7ff,
+            0 0 30px #00f7ff,
+            0 0 60px #00e6ff;
+    }
+    50% {
+        opacity: 0.8;
+        text-shadow:
+            0 0 2px #00f7ff,
+            0 0 8px #00f7ff,
+            0 0 15px #00e6ff;
+    }
+    100% {
+        opacity: 1;
+        text-shadow:
+            0 0 5px #00f7ff,
+            0 0 20px #00f7ff,
+            0 0 40px #00e6ff,
+            0 0 80px #00e6ff;
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .neon-text {
+        font-size: 1.8rem;
+        letter-spacing: 3px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="neon-text">
+    SUMAIYA AR JAMAI JIHAD
+</div>
+
+</body>
+</html>
