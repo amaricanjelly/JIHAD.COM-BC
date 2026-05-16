@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Tools Suite</title>
+    <link rel="stylesheet" href="python-tools.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐍 Python Code Tools Suite</h1>
+            <p>Essential utilities for Python development</p>
+        </header>
+
+        <nav class="tool-nav">
+            <button class="nav-btn active" data-tool="formatter">Code Formatter</button>
+            <button class="nav-btn" data-tool="validator">Code Validator</button>
+            <button class="nav-btn" data-tool="converter">Type Converter</button>
+            <button class="nav-btn" data-tool="parser">Code Parser</button>
+            <button class="nav-btn" data-tool="generator">Boilerplate Generator</button>
+            <button class="nav-btn" data-tool="debugger">Debug Helper</button>
+        </nav>
+
+        <!-- Code Formatter -->
+        <div id="formatter" class="tool-section active">
+            <h2>Code Formatter</h2>
+            <p>Format and beautify your Python code</p>
+            <div class="tool-content">
+                <textarea id="formatter-input" placeholder="Paste your Python code here..." rows="10"></textarea>
+                <div class="options">
+                    <label><input type="checkbox" id="indent-size" checked> Normalize indentation (4 spaces)</label>
+                    <label><input type="checkbox" id="remove-trailing"> Remove trailing whitespace</label>
+                    <label><input type="checkbox" id="add-spacing"> Add spacing around operators</label>
+                </div>
+                <button class="action-btn" onclick="formatCode()">Format Code</button>
+                <textarea id="formatter-output" placeholder="Formatted code will appear here..." rows="10" readonly></textarea>
+                <button class="copy-btn" onclick="copyToClipboard('formatter-output')">📋 Copy</button>
+            </div>
+        </div>
+
+        <!-- Code Validator -->
+        <div id="validator" class="tool-section">
+            <h2>Code Validator</h2>
+            <p>Validate Python syntax and find issues</p>
+            <div class="tool-content">
+                <textarea id="validator-input" placeholder="Paste your Python code here..." rows="10"></textarea>
+                <button class="action-btn" onclick="validateCode()">Validate Code</button>
+                <div id="validator-output" class="output-box"></div>
+            </div>
+        </div>
+
+        <!-- Type Converter -->
+        <div id="converter" class="tool-section">
+            <h2>Type Converter</h2>
+            <p>Convert between Python data types</p>
+            <div class="tool-content">
+                <div class="converter-options">
+                    <div class="form-group">
+                        <label>Input Type:</label>
+                        <select id="input-type" onchange="updateConverter()">
+                            <option value="json">JSON</option>
+                            <option value="dict">Dictionary</option>
+                            <option value="list">List</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Output Type:</label>
+                        <select id="output-type" onchange="updateConverter()">
+                            <option value="dict">Dictionary</option>
+                            <option value="json">JSON</option>
+                            <option value="list">List</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="converter-input" placeholder="Paste data here..." rows="10"></textarea>
+                <button class="action-btn" onclick="convertType()">Convert</button>
+                <textarea id="converter-output" placeholder="Converted output will appear here..." rows="10" readonly></textarea>
+                <button class="copy-btn" onclick="copyToClipboard('converter-output')">📋 Copy</button>
+            </div>
+        </div>
+
+        <!-- Code Parser -->
+        <div id="parser" class="tool-section">
+            <h2>Code Parser</h2>
+            <p>Parse and analyze Python code structure</p>
+            <div class="tool-content">
+                <textarea id="parser-input" placeholder="Paste your Python code here..." rows="10"></textarea>
+                <button class="action-btn" onclick="parseCode()">Parse Code</button>
+                <div id="parser-output" class="output-box"></div>
+            </div>
+        </div>
+
+        <!-- Boilerplate Generator -->
+        <div id="generator" class="tool-section">
+            <h2>Boilerplate Generator</h2>
+            <p>Generate Python code templates</p>
+            <div class="tool-content">
+                <div class="generator-options">
+                    <div class="form-group">
+                        <label>Template Type:</label>
+                        <select id="template-type" onchange="updateTemplate()">
+                            <option value="class">Class Definition</option>
+                            <option value="function">Function</option>
+                            <option value="decorator">Decorator</option>
+                            <option value="exception">Custom Exception</option>
+                            <option value="context">Context Manager</option>
+                            <option value="main">Main Script</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="template-name" placeholder="Enter name...">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="generateTemplate()">Generate</button>
+                <textarea id="generator-output" placeholder="Generated code will appear here..." rows="12" readonly></textarea>
+                <button class="copy-btn" onclick="copyToClipboard('generator-output')">📋 Copy</button>
+            </div>
+        </div>
+
+        <!-- Debug Helper -->
+        <div id="debugger" class="tool-section">
+            <h2>Debug Helper</h2>
+            <p>Generate debug statements and error handling</p>
+            <div class="tool-content">
+                <div class="debug-options">
+                    <div class="form-group">
+                        <label>Debug Type:</label>
+                        <select id="debug-type">
+                            <option value="print">Print Debugging</option>
+                            <option value="logging">Logging Setup</option>
+                            <option value="try-except">Try-Except Handler</option>
+                            <option value="traceback">Traceback Info</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Variable Name:</label>
+                        <input type="text" id="debug-var" placeholder="Enter variable name...">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="generateDebug()">Generate Debug Code</button>
+                <textarea id="debugger-output" placeholder="Debug code will appear here..." rows="12" readonly></textarea>
+                <button class="copy-btn" onclick="copyToClipboard('debugger-output')">📋 Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="python-tools.js"></script>
+</body>
+</html>
